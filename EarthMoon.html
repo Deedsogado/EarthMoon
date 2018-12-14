@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  
+  <!------------------------------------------------------------>
+  <!------------------------ Line shaders ---------------------->
+  <!------------------------------------------------------------>
+
+  <script id="line-vshader" type="x-shader/x-vertex">
+    
+    attribute vec4 vPosition;
+    attribute vec4 vColor;
+    varying vec4 fColor;
+    
+    uniform mat4 mvMatrix;
+    uniform mat4 pMatrix;
+    
+    void main() {
+      gl_Position = pMatrix*mvMatrix*vPosition;
+      fColor = vColor;
+    } 
+  </script>
+  
+  <script id="line-fshader" type="x-shader/x-fragment">
+    
+    #ifdef GL_ES
+    precision highp float;
+    #endif
+    
+    varying vec4 fColor;
+    
+    void main() {
+      gl_FragColor = fColor;
+    }
+  </script>
+  
+  <!------------------------------------------------------------>
+  <!---------------------- Sphere shaders ---------------------->
+  <!------------------------------------------------------------>
+
+  <script id="sphere-vshader" type="x-shader/x-vertex">
+    attribute vec4 vPosition;
+    attribute vec4 vNormal;
+    attribute vec4 vColor;
+	
+    varying vec4 fColor;
+    varying vec3 vLighting;
+    
+	
+    uniform mat4 mvMatrix;
+    uniform mat4 pMatrix;
+    uniform mat4 nMatrix;
+	uniform mat4 liMatrix;
+	uniform vec4 lightPositionSphere;
+    
+    void main() {
+      gl_Position = pMatrix*mvMatrix*vPosition;
+	  
+      // Material properties
+      vec3 ka = vec3(0.0, 0.0, 0.0);
+      vec3 kd = vec3(1.0, 1.0, 1.0);
+      vec3 ks = vec3(0.0, 0.0, 0.0);
+
+      // Light colors
+      //vec3 La = vec3(1.0, 1.0, 1.0);
+      //vec3 Ld = vec3(1.0, 1.0, 1.0);
+      //vec3 Ls = vec3(1.0, 1.0, 1.0);
+      vec3 La = vec3(1.0, 1.0, 1.0);
+      vec3 Ld = vec3(1.0, 1.0, 1.0);
+      vec3 Ls = vec3(1.0, 1.0, 1.0);
+
+//    vec3 l = normalize(lightPositionSphere.xyz - (mvMatrix * vPosition).xyz);
+      vec3 l = normalize(lightPositionSphere.xyz - (liMatrix * vPosition).xyz);
+//	  vec3 l = normalize(lightPositionSphere.xyz - gl_Position.xyz);
+//	  vec3 l = normalize(lightPositionSphere.xyz - vPosition.xyz);
+//	  vec3 l = normalize((mvMatrix * lightPositionSphere).xyz);
+//	  vec3 l = normalize((liMatrix * lightPositionSphere).xyz);	
+//	  vec3 l = normalize((nMatrix * lightPositionSphere).xyz);	
+//	  vec3 l = normalize((mvMatrix * vPosition).xyz);
+//	  vec3 l = normalize((liMatrix * vPosition).xyz);
+//	  vec3 l = normalize(lightPositionSphere.xyz);
+//	  vec3 l = normalize((liMatrix * pMatrix * lightPositionSphere).xyz);
+//	  vec3 l = normalize(vPosition.xyz - (liMatrix * lightPositionSphere).xyz);
+
+
+      // normal in eye coordinates
+//      vec3 n = normalize((nMatrix * vNormal).xyz);
+//		vec3 n = normalize((mvMatrix * vNormal).xyz);
+		vec3 n = normalize((liMatrix * vNormal).xyz); 
+//		vec3 n = normalize( vNormal.xyz);
+
+      // specular values
+      float alpha = 10.0;
+      vec3 v = normalize(vec3(0.0, 0.0, 10.0) - gl_Position.xyz);
+      vec3 r = max(dot(l, n), 0.0)*n*vec3(2.0, 2.0, 2.0)-l;
+      vec3 h = normalize(l+v);
+
+      vec3 ambient = ka*La;
+      vec3 diffuse = kd*Ld*max(dot(n, l), 0.0);
+      vec3 specular = ks*Ls*max(pow(max(dot(r,v), 0.0), alpha), 0.0);
+      //vec3 specular = ks*Ls*max(pow(max(dot(n,h), 0.0), alpha), 0.0);
+
+      vec3 lcolor = ambient + diffuse + specular;
+      fColor = vec4(lcolor, vColor.a);
+    } 
+  </script>
+
+  <script id="sphere-fshader" type="x-shader/x-fragment">
+    
+    precision mediump float;
+    
+    varying vec4 fColor;
+    varying vec3 vLighting;
+	    
+    void main() {
+      //gl_FragColor = vec4(fColor.xyz * vLighting, fColor.a);
+      //gl_FragColor = vec4(vLighting, fColor.a);
+	  
+		gl_FragColor = fColor;
+		
+    }
+  </script>
+  
+  <!------------------------------------------------------------>
+  <!---------------------- Earth shaders ---------------------->
+  <!------------------------------------------------------------>
+
+  <script id="earth-vshader" type="x-shader/x-vertex">
+    attribute vec4 vPosition;
+    attribute vec4 vNormal;
+    attribute vec4 vColor;
+	attribute vec2 vTexCoord; // Added by Ross
+	
+    varying vec4 fColor;
+    varying vec3 vLighting;
+	varying vec2 fTexCoord; // Added by Ross
+    
+    uniform mat4 mvMatrix;
+    uniform mat4 pMatrix;
+    uniform mat4 nMatrix;
+	uniform mat4 liMatrix;
+	uniform vec4 lightPositionEarth;
+
+    
+    void main() {
+      gl_Position = pMatrix*mvMatrix*vPosition;
+	  fTexCoord = vTexCoord; // Added by Ross
+
+      // Material properties
+      vec3 ka = vec3(0.0, 0.0, 0.0);
+      vec3 kd = vec3(1.0, 1.0, 1.0);
+      vec3 ks = vec3(0.0, 0.0, 0.0);
+
+      // Light colors
+      //vec3 La = vec3(1.0, 1.0, 1.0);
+      //vec3 Ld = vec3(1.0, 1.0, 1.0);
+      //vec3 Ls = vec3(1.0, 1.0, 1.0);
+      vec3 La = vec3(1.0, 1.0, 1.0);
+      vec3 Ld = vec3(1.0, 1.0, 1.0);
+      vec3 Ls = vec3(1.0, 1.0, 1.0);
+
+//	  vec3 l = normalize(lightPositionEarth.xyz - (mvMatrix * vPosition).xyz);
+	  vec3 l = normalize(lightPositionEarth.xyz - (liMatrix * vPosition).xyz);  
+      
+	  // normal in eye coordinates
+//      vec3 n = normalize((nMatrix * vNormal).xyz);
+		vec3 n = normalize((liMatrix * vNormal).xyz); 
+//		vec3 n = normalize( vNormal.xyz);
+
+      // specular values
+      float alpha = 10.0;
+      vec3 v = normalize(vec3(0.0, 0.0, 10.0) - gl_Position.xyz);
+      vec3 r = max(dot(l, n), 0.0)*n*vec3(2.0, 2.0, 2.0)-l;
+      vec3 h = normalize(l+v);
+
+      vec3 ambient = ka*La;
+      vec3 diffuse = kd*Ld*max(dot(n, l), 0.0);
+      vec3 specular = ks*Ls*max(pow(max(dot(r,v), 0.0), alpha), 0.0);
+      //vec3 specular = ks*Ls*max(pow(max(dot(n,h), 0.0), alpha), 0.0);
+
+      vec3 lcolor = ambient + diffuse + specular;
+      fColor = vec4(lcolor, vColor.a);
+    } 
+  </script>
+
+  <script id="earth-fshader" type="x-shader/x-fragment">
+    
+    precision mediump float;
+    
+    varying vec4 fColor;
+    varying vec3 vLighting;
+	varying vec2 fTexCoord; // Added by Ross
+	
+	uniform sampler2D earthDaySampler;
+	uniform sampler2D earthNightSampler;
+    
+    void main() {
+      //gl_FragColor = vec4(fColor.xyz * vLighting, fColor.a);
+      //gl_FragColor = vec4(vLighting, fColor.a);
+	  
+		
+		vec4 dayColor = texture2D(earthDaySampler, fTexCoord);
+		vec4 nightColor = texture2D(earthNightSampler, fTexCoord);		
+		vec4 nfColor = vec4(1.6, 1.6, 1.6, 2) - fColor;
+		
+		gl_FragColor = (dayColor * fColor) + (nightColor * nfColor);
+		
+    }
+  </script>
+  
+  
+  <!------------------------------------------------------------>
+  <!---------------------- Moon shaders ------------------------>
+  <!------------------------------------------------------------>
+
+  <script id="moon-vshader" type="x-shader/x-vertex">
+    attribute vec4 vPosition;
+    attribute vec4 vNormal;
+    attribute vec4 vColor;
+	attribute vec2 vTexCoord; // Added by Ross
+	
+    varying vec4 fColor;
+    varying vec3 vLighting;
+	varying vec2 fTexCoord; // Added by Ross
+    
+    uniform mat4 mvMatrix;
+    uniform mat4 pMatrix;
+    uniform mat4 nMatrix;
+	uniform mat4 liMatrix;
+   	uniform vec4 lightPositionMoon;
+
+    void main() {
+      gl_Position = pMatrix*mvMatrix*vPosition;
+	  fTexCoord = vTexCoord; // Added by Ross
+
+      // Material properties
+      vec3 ka = vec3(0.0, 0.0, 0.0);
+      vec3 kd = vec3(1.0, 1.0, 1.0);
+      vec3 ks = vec3(0.0, 0.0, 0.0);
+
+      // Light colors
+      //vec3 La = vec3(1.0, 1.0, 1.0);
+      //vec3 Ld = vec3(1.0, 1.0, 1.0);
+      //vec3 Ls = vec3(1.0, 1.0, 1.0);
+      vec3 La = vec3(1.0, 1.0, 1.0);
+      vec3 Ld = vec3(1.0, 1.0, 1.0);
+      vec3 Ls = vec3(1.0, 1.0, 1.0);
+
+//	  vec3 l = normalize(lightPositionMoon.xyz - (mvMatrix * vPosition).xyz);
+      vec3 l = normalize(lightPositionMoon.xyz - (liMatrix * vPosition).xyz);
+	  
+      // normal in eye coordinates
+//      vec3 n = normalize((nMatrix * vNormal).xyz);
+		vec3 n = normalize((liMatrix * vNormal).xyz); 
+//		vec3 n = normalize( vNormal.xyz);
+
+      // specular values
+      float alpha = 10.0;
+      vec3 v = normalize(vec3(0.0, 0.0, 10.0) - gl_Position.xyz);
+      vec3 r = max(dot(l, n), 0.0)*n*vec3(2.0, 2.0, 2.0)-l;
+      vec3 h = normalize(l+v);
+
+      vec3 ambient = ka*La;
+      vec3 diffuse = kd*Ld*max(dot(n, l), 0.0);
+      vec3 specular = ks*Ls*max(pow(max(dot(r,v), 0.0), alpha), 0.0);
+      //vec3 specular = ks*Ls*max(pow(max(dot(n,h), 0.0), alpha), 0.0);
+
+      vec3 lcolor = ambient + diffuse + specular;
+      fColor = vec4(lcolor, vColor.a);
+    } 
+  </script>
+
+  <script id="moon-fshader" type="x-shader/x-fragment">
+    
+    precision mediump float;
+    
+    varying vec4 fColor;
+    varying vec3 vLighting;
+	varying vec2 fTexCoord; // Added by Ross
+	
+	uniform sampler2D moonSampler;
+    
+    void main() {
+      //gl_FragColor = vec4(fColor.xyz * vLighting, fColor.a);
+      //gl_FragColor = vec4(vLighting, fColor.a);
+	  
+		//gl_FragColor = fColor;
+		  gl_FragColor = texture2D( moonSampler, fTexCoord) * fColor;
+		
+    }
+  </script>
+  
+  
+  
+  <script type="text/javascript" src="./common/webgl-utils.js"></script>
+  <script type="text/javascript" src="./common/initShaders.js"></script>
+  <script type="text/javascript" src="./common/MV.js"></script>
+
+  <script type="text/javascript" src="axis.js"></script>
+  <script type="text/javascript" src="sphere.js"></script>
+  <script type="text/javascript" src="floor.js"></script>
+  <script type="text/javascript" src="segment.js"></script>
+  <script type="text/javascript" src="EarthMoon.js"></script>
+  
+  <link rel="stylesheet" href="styles.css">
+  </head>
+
+  <body>
+	<div id="page" >
+	<div id="leftPane">
+    <canvas id="gl-canvas" width="768" height="768">
+      Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+    <img id = "texEarth" src = "earth.jpg" hidden></img>
+	<img id = "texNight" src = "night.jpg" hidden></img>
+	<img id = "texMoon" src="moon.jpg" hidden></img>
+	
+	</div>
+	<div id="rightPane" >
+	
+	<h1>Controls</h1>
+	
+<p>Press spacebar to toggle animation. Can still rotate with mouse. Does not save laptop power.</p> 
+<br />
+<p>Press backspace to toggle program running. Cannot rotate using mouse.  Saves laptop power. </p>
+<br />
+	
+<br />
+<p>Press "A" to go to default view (psuedo-isomorphic)</p>
+<p>Press "I" to spin camera around y-axis. </p>
+<p>Press "R" to reset camera (undo mouse drags).</p>
+<br />
+<p>Press "x" to look down x-axis from positive direction.</p>
+<p>Press "y" to look down y-axis from positive direction.</p>
+<p>Press "z" to look down z-axis from positive direction.</p>
+<br />
+<p>Press shift + X to look down x-axis from negative direction.</p>
+<p>Press shift + Y to look down y-axis from negative direction.</p>
+<p>Press shift + Z to look down z-axis from negative direction.</p>
+<br />
+
+<p>Click and drag mouse to rotate earth. Only works in Modes "A" and "I". </p>
+<br />
+<p>Click mouse once to repeat the same rotation that you used in the last click-and-drag. </p>
+<br />
+<p>Scroll mouse wheel to zoom in and out. </p>
+<br />
+
+<h1>Extras / Features: </h1>
+
+<p>Correct day night cycles. </p>
+<p>In sunlight, you can see the surface of the earth.</p>  
+<p>In darkness, you can see city lights.</p> 
+<br />
+<p>Correct Moon rotation. Moon orbits earth once every 27 days. Same side of moon always faces earth. </p>
+
+
+	</div>
+	</div>
+  </body>
+</html>

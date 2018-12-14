@@ -1,0 +1,24 @@
+#page {
+	display: float; 
+	overflow: auto;
+}
+
+#leftPane {
+	float: left;
+	width: 50%;
+}
+
+#rightPane {
+	float: left;
+	width:50%;
+}
+
+#gl-canvas {
+	width: 100%;
+}
+
+p {
+	margin: 0px;
+	padding: 0px;
+	margin-left: 10px;
+}
