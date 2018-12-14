@@ -31,3 +31,5 @@ In sunlight, you can see the surface of the earth.
 In darkness, you can see city lights. 
 
 Correct Moon rotation. Moon orbits earth once every 27 days. Same side of moon always faces earth. 
+<br/>
+![alt text](https://github.com/Deedsogado/EarthMoon/blob/master/Sample.png "picture of moon near earth. ")
